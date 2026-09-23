@@ -344,7 +344,7 @@
             }
 
             system.appendChild(fragment);
-            requestAnimationFrame(animate);
+            startAnimation();
         }
 
         function showDetails(layer, part) {
@@ -408,18 +408,7 @@
             return zIndex;
         }
 
-        function animate(timestamp) {
-            if (!state.lastFrame) {
-                state.lastFrame = timestamp;
-            }
-
-            const delta = Math.min(timestamp - state.lastFrame, 50);
-            state.lastFrame = timestamp;
-
-            if (!reducedMotion) {
-                state.t += delta * config.rotationSpeed;
-            }
-
+        function render() {
             const cx = Math.cos(state.rotX);
             const sx = Math.sin(state.rotX);
             const cy = Math.cos(state.rotY);
@@ -459,7 +448,36 @@
                 }
             }
 
+        }
+
+        function animate(timestamp) {
+            if (!state.lastFrame) {
+                state.lastFrame = timestamp;
+            }
+
+            const delta = Math.min(timestamp - state.lastFrame, 50);
+            state.lastFrame = timestamp;
+            state.t += delta * config.rotationSpeed;
+            render();
+
             state.animationFrame = requestAnimationFrame(animate);
+        }
+
+        function startAnimation() {
+            if (reducedMotion || document.hidden || state.animationFrame) {
+                render();
+                return;
+            }
+
+            state.lastFrame = 0;
+            state.animationFrame = requestAnimationFrame(animate);
+        }
+
+        function stopAnimation() {
+            if (state.animationFrame) {
+                cancelAnimationFrame(state.animationFrame);
+                state.animationFrame = 0;
+            }
         }
 
         function resetView() {
@@ -468,6 +486,7 @@
             state.panX = 0;
             state.panY = 0;
             state.zoom = 0.8;
+            render();
         }
 
         system.addEventListener("click", event => {
@@ -522,10 +541,12 @@
                 closeModal();
             } else if (state.activePointers.size === 2) {
                 state.dragging = true;
-                const points = Array.from(state.activePointers.values());
+                const points = state.activePointers.values();
+                const first = points.next().value;
+                const second = points.next().value;
                 state.pinchDistance = Math.hypot(
-                    points[0].x - points[1].x,
-                    points[0].y - points[1].y
+                    first.x - second.x,
+                    first.y - second.y
                 );
                 state.pinchZoom = state.zoom;
             }
@@ -541,10 +562,12 @@
             pointer.y = event.clientY;
 
             if (state.activePointers.size === 2) {
-                const points = Array.from(state.activePointers.values());
+                const points = state.activePointers.values();
+                const first = points.next().value;
+                const second = points.next().value;
                 const distance = Math.hypot(
-                    points[0].x - points[1].x,
-                    points[0].y - points[1].y
+                    first.x - second.x,
+                    first.y - second.y
                 );
 
                 if (state.pinchDistance > 0) {
@@ -553,6 +576,7 @@
                         config.minZoom,
                         Math.min(state.pinchZoom * ratio, config.maxZoom)
                     );
+                    render();
                 }
 
                 return;
@@ -584,6 +608,7 @@
 
             state.lastX = event.clientX;
             state.lastY = event.clientY;
+            render();
         });
 
         function finishPointer(event) {
@@ -630,7 +655,10 @@
 
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
+                stopAnimation();
                 state.lastFrame = 0;
+            } else {
+                startAnimation();
             }
         });
 
