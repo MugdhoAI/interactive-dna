@@ -277,7 +277,8 @@
             animationFrame: 0,
             activePointers: new Map(),
             pinchDistance: 0,
-            pinchZoom: 0.8
+            pinchZoom: 0.8,
+            justDragged: false
         };
 
         function init() {
@@ -471,7 +472,7 @@
 
         system.addEventListener("click", event => {
             const target = event.target.closest("[data-layer]");
-            if (!target || state.dragging) {
+            if (!target || state.dragging || state.justDragged) {
                 return;
             }
 
@@ -594,9 +595,11 @@
 
             if (state.activePointers.size === 0) {
                 document.body.classList.remove("grabbing");
+                state.justDragged = state.dragging;
                 setTimeout(() => {
                     state.dragging = false;
-                }, 0);
+                    state.justDragged = false;
+                }, 50);
             }
         }
 
