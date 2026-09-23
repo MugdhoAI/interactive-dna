@@ -280,65 +280,6 @@
             pinchZoom: 0.8
         };
 
-        function createLayer(index) {
-            const template = dnaDatabase[Math.floor(Math.random() * dnaDatabase.length)];
-            const flip = Math.random() > 0.5;
-            const dot1Data = flip ? template.right : template.left;
-            const dot2Data = flip ? template.left : template.right;
-            const hue = 190 + (index / config.count) * 100;
-            const color = "hsl(" + hue + ", 100%, 60%)";
-
-            const dot1 = document.createElement("div");
-            const dot2 = document.createElement("div");
-            const line = document.createElement("div");
-
-            dot1.className = "nucleotide";
-            dot2.className = "nucleotide";
-            line.className = "connector";
-
-            dot1.style.color = color;
-            dot1.style.backgroundColor = color;
-            dot2.style.color = color;
-            dot2.style.backgroundColor = color;
-            line.style.background = "linear-gradient(90deg, transparent, " + color + ", transparent)";
-
-            dot1.dataset.layer = String(index);
-            dot1.dataset.part = "dot1";
-            dot2.dataset.layer = String(index);
-            dot2.dataset.part = "dot2";
-            line.dataset.layer = String(index);
-            line.dataset.part = "bond";
-
-            dot1.tabIndex = 0;
-            dot2.tabIndex = 0;
-            line.tabIndex = 0;
-            dot1.setAttribute("role", "button");
-            dot2.setAttribute("role", "button");
-            line.setAttribute("role", "button");
-            dot1.setAttribute("aria-label", dot1Data.name);
-            dot2.setAttribute("aria-label", dot2Data.name);
-            line.setAttribute("aria-label", template.bondName);
-
-            system.append(line, dot1, dot2);
-
-            return {
-                dot1,
-                dot2,
-                line,
-                dot1Style: dot1.style,
-                dot2Style: dot2.style,
-                lineStyle: line.style,
-                dot1Data,
-                dot2Data,
-                bondData: template,
-                y: (index * config.spacing) - ((config.count * config.spacing) / 2),
-                angle: index * config.twist,
-                lastDot1Z: null,
-                lastDot2Z: null,
-                lastLineZ: null
-            };
-        }
-
         function init() {
             const fragment = document.createDocumentFragment();
 
@@ -568,6 +509,10 @@
                 button: event.button
             });
 
+            if (event.target.setPointerCapture) {
+                event.target.setPointerCapture(event.pointerId);
+            }
+
             if (state.activePointers.size === 1) {
                 state.dragging = false;
                 state.lastX = event.clientX;
@@ -657,11 +602,6 @@
 
         viewport.addEventListener("pointerup", finishPointer);
         viewport.addEventListener("pointercancel", finishPointer);
-        viewport.addEventListener("pointerleave", event => {
-            if (event.pointerType === "mouse" && event.buttons === 0) {
-                finishPointer(event);
-            }
-        });
 
         viewport.addEventListener("wheel", event => {
             event.preventDefault();
