@@ -58,7 +58,7 @@ Pointer events provide one input model for mouse, touch, and pen interaction.
 
 Pointer capture keeps active gestures stable when the pointer leaves an element.
 
-The animation honors the users reduced motion preference.
+The animation honors the user's reduced motion preference.
 
 The animation loop resets its frame timing when the document becomes hidden.
 
