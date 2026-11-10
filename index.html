@@ -618,6 +618,12 @@
                 state.pinchDistance = 0;
             }
 
+            if (state.activePointers.size === 1) {
+                const remaining = state.activePointers.values().next().value;
+                state.lastX = remaining.x;
+                state.lastY = remaining.y;
+            }
+
             if (state.activePointers.size === 0) {
                 document.body.classList.remove("grabbing");
                 state.justDragged = state.dragging;
@@ -637,6 +643,7 @@
                 config.minZoom,
                 Math.min(state.zoom - event.deltaY * 0.001, config.maxZoom)
             );
+            render();
         }, { passive: false });
 
         viewport.addEventListener("contextmenu", event => event.preventDefault());
