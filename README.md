@@ -94,6 +94,16 @@ Open index.html in a modern browser.
 
 No build step or dependency installation is required.
 
+## Tests
+
+Interaction regression tests live in tests/interaction.test.mjs and use only the Node.js built in test runner, so there are still no dependencies to install.
+
+Run them with Node.js 18 or later:
+
+    node --test tests/interaction.test.mjs
+
+The tests cover two interaction fixes: wheel zoom now repaints immediately, which matters when reduced motion stops the animation loop, and ending a pinch resyncs the remaining pointer position so the view does not jump when single pointer dragging resumes.
+
 ## Project status
 
 This version is a focused optimization pass.
