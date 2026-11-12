@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/interactive-dna-hero.svg" alt="Interactive DNA: Hold the Double Helix in Your Hands" width="100%">
+</p>
+
 # Interactive DNA
 
 Interactive 3D DNA visualization built with vanilla HTML, CSS, and JavaScript.
