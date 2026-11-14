@@ -185,6 +185,29 @@ test("wheel zoom repaints immediately when animation is not running", () => {
     );
 });
 
+test("nucleotide opacity stays within range after a large X rotation", () => {
+    const { system, viewport } = loadApp();
+
+    // Drag up far enough to rotate the helix about 90 degrees on X:
+    // bases near the ends then project with a scale well above 1,
+    // and their opacity used to reach about 2.38, outside the valid
+    // CSS opacity range of 0 to 1.
+    viewport.dispatch("pointerdown", pointerEvent(viewport, 1, 100, 100));
+    viewport.dispatch("pointermove", pointerEvent(viewport, 1, 100, 100 - 314));
+
+    const opacities = system.children
+        .filter((child) => child.className === "nucleotide")
+        .map((child) => Number(child.style.opacity));
+
+    assert.ok(opacities.length > 0);
+    for (const opacity of opacities) {
+        assert.ok(
+            opacity >= 0.2 && opacity <= 1,
+            "nucleotide opacity should stay in [0.2, 1], got " + opacity
+        );
+    }
+});
+
 test("ending a pinch does not make the remaining pointer jump", () => {
     const { system, viewport } = loadApp();
 

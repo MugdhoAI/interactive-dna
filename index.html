@@ -389,7 +389,7 @@
                 x: rotatedX * projectedScale + state.panX,
                 y: rotatedY * projectedScale + state.panY,
                 scale: projectedScale,
-                opacity: Math.max(0.2, scale - 0.2)
+                opacity: Math.min(1, Math.max(0.2, scale - 0.2))
             };
         }
 
