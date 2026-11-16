@@ -151,7 +151,9 @@ function loadApp() {
         system: byId["dna-system"],
         viewport: byId["viewport"],
         doc: documentStub,
-        resetBtn: byId["reset-btn"]
+        resetBtn: byId["reset-btn"],
+        modal: byId["info-card"],
+        modalStats: byId["modal-stats"]
     };
 }
 
@@ -323,6 +325,41 @@ test("wheel zoom at the viewport center does not pan", () => {
             "dot " + i + " should scale about the center with no pan"
         );
     }
+});
+
+test("info panel shows the rung number for a base and a bond", () => {
+    const { system, modal, modalStats } = loadApp();
+
+    const dot = system.children.find(
+        (child) => child.className === "nucleotide" && child.dataset.layer === "4"
+    );
+    assert.ok(dot, "a nucleotide from rung 5 should exist");
+    system.dispatch("click", { target: dot });
+
+    assert.ok(modal.classList.contains("active"), "clicking a base should open the panel");
+    assert.ok(
+        modalStats.textContent.includes("Rung 5 of 35"),
+        "base stats should name its rung, got " + modalStats.textContent
+    );
+    assert.ok(
+        modalStats.textContent.startsWith("Class: "),
+        "base stats should keep the class first, got " + modalStats.textContent
+    );
+
+    const bond = system.children.find(
+        (child) => child.className === "connector" && child.dataset.layer === "9"
+    );
+    assert.ok(bond, "a connector from rung 10 should exist");
+    system.dispatch("click", { target: bond });
+
+    assert.ok(
+        modalStats.textContent.includes("Rung 10 of 35"),
+        "bond stats should name its rung, got " + modalStats.textContent
+    );
+    assert.ok(
+        modalStats.textContent.startsWith("Hydrogen bonds: "),
+        "bond stats should keep the bond count first, got " + modalStats.textContent
+    );
 });
 
 test("nucleotide opacity stays within range after a large X rotation", () => {

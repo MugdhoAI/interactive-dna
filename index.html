@@ -348,6 +348,7 @@
                 fragment.append(line, dot1, dot2);
 
                 layers.push({
+                    index: i,
                     dot1,
                     dot2,
                     line,
@@ -374,18 +375,19 @@
             let title;
             let description;
             let stats;
+            const rungLabel = " · Rung " + (layer.index + 1) + " of " + config.count;
 
             if (part === "bond") {
                 category = "Hydrogen Bond";
                 title = layer.bondData.bondName;
                 description = layer.bondData.bondDesc;
-                stats = layer.bondData.bondStats;
+                stats = layer.bondData.bondStats + rungLabel;
             } else {
                 const base = part === "dot1" ? layer.dot1Data : layer.dot2Data;
                 category = "Nucleobase";
                 title = base.name;
                 description = base.desc;
-                stats = "Class: " + base.type;
+                stats = "Class: " + base.type + rungLabel;
             }
 
             document.getElementById("modal-cat").textContent = category;
