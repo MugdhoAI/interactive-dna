@@ -395,10 +395,12 @@
             document.getElementById("modal-desc").textContent = description;
             document.getElementById("modal-stats").textContent = stats;
             modal.classList.add("active");
+            stopAnimation();
         }
 
         function closeModal() {
             modal.classList.remove("active");
+            startAnimation();
         }
 
         function project(x, y, z, cx, sx, cy, sy) {

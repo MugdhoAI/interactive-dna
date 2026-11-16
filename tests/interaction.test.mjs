@@ -81,7 +81,7 @@ class FakeElement {
     }
 }
 
-function loadApp() {
+function loadApp(options = {}) {
     const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
     const match = html.match(/<script>([\s\S]*?)<\/script>/);
     assert.ok(match, "index.html should contain an inline script");
@@ -129,17 +129,22 @@ function loadApp() {
         }
     };
 
+    const frameCalls = { requested: 0, cancelled: 0 };
+    let nextFrameId = 1;
     const sandbox = {
         document: documentStub,
         window: {
             matchMedia() {
-                return { matches: true };
+                return { matches: options.reducedMotion !== false };
             }
         },
         requestAnimationFrame() {
-            return 0;
+            frameCalls.requested += 1;
+            return nextFrameId++;
         },
-        cancelAnimationFrame() {},
+        cancelAnimationFrame() {
+            frameCalls.cancelled += 1;
+        },
         setTimeout,
         console
     };
@@ -153,7 +158,8 @@ function loadApp() {
         doc: documentStub,
         resetBtn: byId["reset-btn"],
         modal: byId["info-card"],
-        modalStats: byId["modal-stats"]
+        modalStats: byId["modal-stats"],
+        frameCalls
     };
 }
 
@@ -360,6 +366,22 @@ test("info panel shows the rung number for a base and a bond", () => {
         modalStats.textContent.startsWith("Hydrogen bonds: "),
         "bond stats should keep the bond count first, got " + modalStats.textContent
     );
+});
+
+test("opening the info panel pauses rotation, closing it resumes", () => {
+    const { system, modal, doc, frameCalls } = loadApp({ reducedMotion: false });
+    assert.equal(frameCalls.requested, 1, "the animation should start on load");
+
+    const dot = system.children.find((child) => child.className === "nucleotide");
+    assert.ok(dot, "a nucleotide should exist");
+    system.dispatch("click", { target: dot });
+
+    assert.ok(modal.classList.contains("active"), "clicking a base should open the panel");
+    assert.equal(frameCalls.cancelled, 1, "opening the panel should cancel the animation frame");
+
+    doc.dispatch("keydown", { key: "Escape" });
+    assert.ok(!modal.classList.contains("active"), "Escape should close the panel");
+    assert.equal(frameCalls.requested, 2, "closing the panel should request a new animation frame");
 });
 
 test("nucleotide opacity stays within range after a large X rotation", () => {
