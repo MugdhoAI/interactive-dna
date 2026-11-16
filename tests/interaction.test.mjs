@@ -96,6 +96,7 @@ function loadApp() {
         byId[id] = new FakeElement();
     }
 
+    const docListeners = {};
     const documentStub = {
         body: new FakeElement("body"),
         hidden: false,
@@ -110,7 +111,17 @@ function loadApp() {
             fragment.isFragment = true;
             return fragment;
         },
-        addEventListener() {}
+        addEventListener(type, handler) {
+            if (!docListeners[type]) {
+                docListeners[type] = [];
+            }
+            docListeners[type].push(handler);
+        },
+        dispatch(type, event) {
+            for (const handler of docListeners[type] || []) {
+                handler(event);
+            }
+        }
     };
 
     const sandbox = {
@@ -133,7 +144,8 @@ function loadApp() {
 
     return {
         system: byId["dna-system"],
-        viewport: byId["viewport"]
+        viewport: byId["viewport"],
+        doc: documentStub
     };
 }
 
@@ -182,6 +194,64 @@ test("wheel zoom repaints immediately when animation is not running", () => {
     assert.ok(
         afterScales.some((scale, index) => scale > beforeScales[index]),
         "wheel zoom in should increase a nucleotide scale without waiting for an animation frame"
+    );
+});
+
+test("keyboard zoom changes scale and clamps at the zoom limits", () => {
+    const { system, doc } = loadApp();
+    const beforeScales = dotScales(system);
+
+    doc.dispatch("keydown", { key: "+" });
+    const zoomedIn = dotScales(system);
+    assert.ok(
+        zoomedIn.some((scale, index) => scale > beforeScales[index]),
+        "pressing + should increase a nucleotide scale"
+    );
+
+    doc.dispatch("keydown", { key: "-" });
+    const zoomedBack = dotScales(system);
+    assert.deepEqual(
+        zoomedBack.map((scale) => scale.toFixed(6)),
+        beforeScales.map((scale) => scale.toFixed(6)),
+        "pressing - once after + once should return to the starting zoom"
+    );
+
+    const zoomOut = () => {
+        const { system: nextSystem, doc: nextDoc } = loadApp();
+        for (let i = 0; i < 40; i += 1) {
+            nextDoc.dispatch("keydown", { key: "-" });
+        }
+        return dotScales(nextSystem);
+    };
+    const minScales = zoomOut();
+    const minScalesAgain = zoomOut();
+    assert.deepEqual(
+        minScalesAgain.map((scale) => scale.toFixed(6)),
+        minScales.map((scale) => scale.toFixed(6)),
+        "repeated - presses should stop at the minimum zoom"
+    );
+    assert.ok(
+        minScales.some((scale, index) => scale < beforeScales[index]),
+        "repeated - presses should zoom out below the starting zoom"
+    );
+
+    const zoomIn = () => {
+        const { system: nextSystem, doc: nextDoc } = loadApp();
+        for (let i = 0; i < 40; i += 1) {
+            nextDoc.dispatch("keydown", { key: "+" });
+        }
+        return dotScales(nextSystem);
+    };
+    const maxScales = zoomIn();
+    const maxScalesAgain = zoomIn();
+    assert.deepEqual(
+        maxScalesAgain.map((scale) => scale.toFixed(6)),
+        maxScales.map((scale) => scale.toFixed(6)),
+        "repeated + presses should stop at the maximum zoom"
+    );
+    assert.ok(
+        maxScales.some((scale, index) => scale > beforeScales[index]),
+        "repeated + presses should zoom in above the starting zoom"
     );
 });
 

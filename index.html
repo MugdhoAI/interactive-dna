@@ -199,7 +199,7 @@
     </div>
 
     <div id="hud">
-        Drag to rotate · Right drag to pan · Scroll to zoom · Select dots or lines for details
+        Drag to rotate · Right drag to pan · Scroll to zoom · + / - to zoom · Select dots or lines for details
     </div>
 
     <div id="info-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -489,6 +489,14 @@
             render();
         }
 
+        function zoomBy(factor) {
+            state.zoom = Math.max(
+                config.minZoom,
+                Math.min(state.zoom * factor, config.maxZoom)
+            );
+            render();
+        }
+
         system.addEventListener("click", event => {
             const target = event.target.closest("[data-layer]");
             if (!target || state.dragging || state.justDragged) {
@@ -653,6 +661,12 @@
         document.addEventListener("keydown", event => {
             if (event.key === "Escape") {
                 closeModal();
+            }
+
+            if (event.key === "+" || event.key === "=") {
+                zoomBy(1.25);
+            } else if (event.key === "-" || event.key === "_") {
+                zoomBy(1 / 1.25);
             }
 
             if (event.key.toLowerCase() === "r" && !event.ctrlKey && !event.metaKey) {
