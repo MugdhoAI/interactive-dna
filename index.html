@@ -669,10 +669,20 @@
 
         viewport.addEventListener("wheel", event => {
             event.preventDefault();
-            state.zoom = Math.max(
+            const rect = viewport.getBoundingClientRect();
+            const clientX = event.clientX ?? (rect.left + rect.width / 2);
+            const clientY = event.clientY ?? (rect.top + rect.height / 2);
+            const cursorX = clientX - (rect.left + rect.width / 2);
+            const cursorY = clientY - (rect.top + rect.height / 2);
+            const oldZoom = state.zoom;
+            const newZoom = Math.max(
                 config.minZoom,
                 Math.min(state.zoom - event.deltaY * 0.001, config.maxZoom)
             );
+            const ratio = newZoom / oldZoom;
+            state.panX = cursorX - (cursorX - state.panX) * ratio;
+            state.panY = cursorY - (cursorY - state.panY) * ratio;
+            state.zoom = newZoom;
             render();
         }, { passive: false });
 

@@ -63,6 +63,10 @@ class FakeElement {
 
     setPointerCapture() {}
 
+    getBoundingClientRect() {
+        return { left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600 };
+    }
+
     closest(selector) {
         if (selector === "[data-layer]") {
             return this.dataset.layer !== undefined ? this : null;
@@ -280,6 +284,45 @@ test("Reset view button restores the starting camera", () => {
         before.map((pos) => [pos.x.toFixed(6), pos.y.toFixed(6)]),
         "Reset view should restore the starting dot positions"
     );
+});
+
+test("wheel zoom keeps the point under the cursor in place", () => {
+    // Cursor at (700, 300) in an 800x600 viewport, so 300px right of center.
+    // Zooming in from 0.8 to 0.9 scales every dot about that cursor point.
+    const { system, viewport } = loadApp();
+    const before = dotPositions(system);
+
+    viewport.dispatch("wheel", { clientX: 700, clientY: 300, deltaY: -100, preventDefault() {} });
+
+    const after = dotPositions(system);
+    const ratio = 0.9 / 0.8;
+    for (let i = 0; i < before.length; i += 1) {
+        const expectedX = ratio * (before[i].x - 300) + 300;
+        const expectedY = ratio * before[i].y;
+        assert.ok(
+            Math.abs(after[i].x - expectedX) < 0.01 && Math.abs(after[i].y - expectedY) < 0.01,
+            "dot " + i + " should scale about the cursor, expected (" +
+            expectedX.toFixed(2) + ", " + expectedY.toFixed(2) + "), got (" +
+            after[i].x.toFixed(2) + ", " + after[i].y.toFixed(2) + ")"
+        );
+    }
+});
+
+test("wheel zoom at the viewport center does not pan", () => {
+    const { system, viewport } = loadApp();
+    const before = dotPositions(system);
+
+    viewport.dispatch("wheel", { clientX: 400, clientY: 300, deltaY: -100, preventDefault() {} });
+
+    const after = dotPositions(system);
+    const ratio = 0.9 / 0.8;
+    for (let i = 0; i < before.length; i += 1) {
+        assert.ok(
+            Math.abs(after[i].x - ratio * before[i].x) < 0.01 &&
+            Math.abs(after[i].y - ratio * before[i].y) < 0.01,
+            "dot " + i + " should scale about the center with no pan"
+        );
+    }
 });
 
 test("nucleotide opacity stays within range after a large X rotation", () => {
