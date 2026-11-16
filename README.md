@@ -34,15 +34,19 @@ Drag with the primary pointer to rotate the helix.
 
 Use a right mouse drag to pan.
 
-Use the mouse wheel or a touch pinch to zoom.
+Use the mouse wheel to zoom toward the pointer, or a touch pinch to zoom.
 
-Select a glowing point or connection to open its information panel.
+Press + or - to zoom in steps, clamped to the zoom limits.
+
+Select a glowing point or connection to open its information panel. The panel names the rung the base or bond belongs to.
+
+Rotation pauses while the information panel is open and resumes when it closes, so the helix stays still while you read.
 
 Keyboard users can focus a point or connection and press Enter or Space to open its information.
 
 Press Escape to close the information panel.
 
-Press R to reset the camera.
+Press R or the Reset view button to reset the camera.
 
 ## Optimization work
 
@@ -106,7 +110,7 @@ Run them with Node.js 18 or later:
 
     node --test tests/interaction.test.mjs
 
-The tests cover two interaction fixes: wheel zoom now repaints immediately, which matters when reduced motion stops the animation loop, and ending a pinch resyncs the remaining pointer position so the view does not jump when single pointer dragging resumes.
+The tests cover the interaction fixes and features: wheel zoom now repaints immediately, which matters when reduced motion stops the animation loop, and ending a pinch resyncs the remaining pointer position so the view does not jump when single pointer dragging resumes. They also cover keyboard zoom and its limits, the Reset view button, wheel zoom keeping the point under the cursor in place, rung numbers in the information panel, rotation pausing while the panel is open, and the helix structure of 35 rungs with two bases and one bond each.
 
 ## Project status
 
