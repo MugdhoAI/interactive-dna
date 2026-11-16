@@ -384,6 +384,39 @@ test("opening the info panel pauses rotation, closing it resumes", () => {
     assert.equal(frameCalls.requested, 2, "closing the panel should request a new animation frame");
 });
 
+test("helix structure has 35 rungs with two bases and one bond each", () => {
+    const { system } = loadApp();
+
+    const dots = system.children.filter((child) => child.className === "nucleotide");
+    const bonds = system.children.filter((child) => child.className === "connector");
+    assert.equal(dots.length, 70, "the helix should have 70 nucleobases");
+    assert.equal(bonds.length, 35, "the helix should have 35 connectors");
+
+    for (let i = 0; i < 35; i += 1) {
+        const layer = String(i);
+        const rungDots = dots.filter((dot) => dot.dataset.layer === layer);
+        assert.equal(rungDots.length, 2, "rung " + layer + " should have two bases");
+        assert.deepEqual(
+            rungDots.map((dot) => dot.dataset.part).sort(),
+            ["dot1", "dot2"],
+            "rung " + layer + " should have a dot1 and a dot2"
+        );
+
+        const rungBonds = bonds.filter((bond) => bond.dataset.layer === layer);
+        assert.equal(rungBonds.length, 1, "rung " + layer + " should have one bond");
+        assert.equal(rungBonds[0].dataset.part, "bond");
+
+        for (const dot of rungDots) {
+            assert.equal(dot.tabIndex, 0, "bases should be keyboard focusable");
+            assert.equal(dot.attributes.role, "button");
+            assert.ok(dot.attributes["aria-label"], "bases should name the nucleobase");
+        }
+        assert.equal(rungBonds[0].tabIndex, 0, "bonds should be keyboard focusable");
+        assert.equal(rungBonds[0].attributes.role, "button");
+        assert.ok(rungBonds[0].attributes["aria-label"], "bonds should name the base pair");
+    }
+});
+
 test("nucleotide opacity stays within range after a large X rotation", () => {
     const { system, viewport } = loadApp();
 
