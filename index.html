@@ -104,6 +104,27 @@
             pointer-events: none;
         }
 
+        #hud button {
+            pointer-events: auto;
+            margin-left: 12px;
+            padding: 4px 12px;
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            border-radius: 999px;
+            background: rgba(0, 243, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+            font: inherit;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        #hud button:hover,
+        #hud button:focus-visible {
+            background: rgba(0, 243, 255, 0.2);
+            color: white;
+        }
+
         #info-card {
             position: absolute;
             top: 50%;
@@ -199,7 +220,8 @@
     </div>
 
     <div id="hud">
-        Drag to rotate · Right drag to pan · Scroll to zoom · + / - to zoom · Select dots or lines for details
+        Drag to rotate · Right drag to pan · Scroll to zoom · + / - to zoom · R to reset · Select dots or lines for details
+        <button id="reset-btn" type="button" title="Reset view (R)">Reset view</button>
     </div>
 
     <div id="info-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -657,6 +679,8 @@
         viewport.addEventListener("contextmenu", event => event.preventDefault());
 
         document.getElementById("close-btn").addEventListener("click", closeModal);
+
+        document.getElementById("reset-btn").addEventListener("click", resetView);
 
         document.addEventListener("keydown", event => {
             if (event.key === "Escape") {

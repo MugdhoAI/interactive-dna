@@ -91,7 +91,8 @@ function loadApp() {
         "modal-title",
         "modal-desc",
         "modal-stats",
-        "close-btn"
+        "close-btn",
+        "reset-btn"
     ]) {
         byId[id] = new FakeElement();
     }
@@ -145,7 +146,8 @@ function loadApp() {
     return {
         system: byId["dna-system"],
         viewport: byId["viewport"],
-        doc: documentStub
+        doc: documentStub,
+        resetBtn: byId["reset-btn"]
     };
 }
 
@@ -252,6 +254,31 @@ test("keyboard zoom changes scale and clamps at the zoom limits", () => {
     assert.ok(
         maxScales.some((scale, index) => scale > beforeScales[index]),
         "repeated + presses should zoom in above the starting zoom"
+    );
+});
+
+test("Reset view button restores the starting camera", () => {
+    const { system, viewport, resetBtn } = loadApp();
+    const before = dotPositions(system);
+
+    viewport.dispatch("pointerdown", pointerEvent(viewport, 1, 100, 100));
+    viewport.dispatch("pointermove", pointerEvent(viewport, 1, 160, 80));
+    viewport.dispatch("wheel", { deltaY: -100, preventDefault() {} });
+    const moved = dotPositions(system);
+    assert.ok(
+        moved.some((pos, index) =>
+            Math.hypot(pos.x - before[index].x, pos.y - before[index].y) > 3
+        ),
+        "dragging and zooming should move the dots first"
+    );
+
+    resetBtn.dispatch("click", {});
+
+    const after = dotPositions(system);
+    assert.deepEqual(
+        after.map((pos) => [pos.x.toFixed(6), pos.y.toFixed(6)]),
+        before.map((pos) => [pos.x.toFixed(6), pos.y.toFixed(6)]),
+        "Reset view should restore the starting dot positions"
     );
 });
 
