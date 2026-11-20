@@ -96,7 +96,8 @@ function loadApp(options = {}) {
         "modal-desc",
         "modal-stats",
         "close-btn",
-        "reset-btn"
+        "reset-btn",
+        "pause-btn"
     ]) {
         byId[id] = new FakeElement();
     }
@@ -157,6 +158,7 @@ function loadApp(options = {}) {
         viewport: byId["viewport"],
         doc: documentStub,
         resetBtn: byId["reset-btn"],
+        pauseBtn: byId["pause-btn"],
         modal: byId["info-card"],
         modalStats: byId["modal-stats"],
         frameCalls
@@ -292,6 +294,56 @@ test("Reset view button restores the starting camera", () => {
         before.map((pos) => [pos.x.toFixed(6), pos.y.toFixed(6)]),
         "Reset view should restore the starting dot positions"
     );
+});
+
+test("Pause button pauses rotation and Resume restarts it", () => {
+    const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    assert.ok(
+        html.includes('id="pause-btn"'),
+        "index.html should contain a pause button in the HUD"
+    );
+
+    const { pauseBtn, doc, frameCalls } = loadApp({ reducedMotion: false });
+    assert.equal(frameCalls.requested, 1, "the animation should start on load");
+
+    pauseBtn.dispatch("click", {});
+    assert.equal(
+        frameCalls.cancelled,
+        1,
+        "clicking Pause should cancel the animation frame"
+    );
+    assert.equal(
+        pauseBtn.textContent,
+        "Resume",
+        "the button label should switch to Resume while paused"
+    );
+
+    doc.dispatch("visibilitychange", {});
+    assert.equal(
+        frameCalls.requested,
+        1,
+        "becoming visible again should not restart a manually paused rotation"
+    );
+
+    pauseBtn.dispatch("click", {});
+    assert.equal(
+        frameCalls.requested,
+        2,
+        "clicking Resume should request a new animation frame"
+    );
+    assert.equal(
+        pauseBtn.textContent,
+        "Pause",
+        "the button label should switch back to Pause while running"
+    );
+
+    pauseBtn.dispatch("click", {});
+    assert.equal(
+        frameCalls.cancelled,
+        2,
+        "clicking Pause again should cancel the animation frame again"
+    );
+    assert.equal(pauseBtn.textContent, "Resume");
 });
 
 test("wheel zoom keeps the point under the cursor in place", () => {

@@ -221,6 +221,7 @@
 
     <div id="hud">
         Drag to rotate · Right drag to pan · Scroll to zoom · + / - to zoom · R to reset · Select dots or lines for details
+        <button id="pause-btn" type="button" title="Pause rotation">Pause</button>
         <button id="reset-btn" type="button" title="Reset view (R)">Reset view</button>
     </div>
 
@@ -300,7 +301,8 @@
             activePointers: new Map(),
             pinchDistance: 0,
             pinchZoom: 0.8,
-            justDragged: false
+            justDragged: false,
+            rotationPaused: false
         };
 
         function init() {
@@ -490,7 +492,7 @@
         }
 
         function startAnimation() {
-            if (reducedMotion || document.hidden || state.animationFrame) {
+            if (state.rotationPaused || reducedMotion || document.hidden || state.animationFrame) {
                 render();
                 return;
             }
@@ -503,6 +505,22 @@
             if (state.animationFrame) {
                 cancelAnimationFrame(state.animationFrame);
                 state.animationFrame = 0;
+            }
+        }
+
+        function toggleRotation() {
+            state.rotationPaused = !state.rotationPaused;
+
+            const pauseBtn = document.getElementById("pause-btn");
+            if (pauseBtn) {
+                pauseBtn.textContent = state.rotationPaused ? "Resume" : "Pause";
+                pauseBtn.title = state.rotationPaused ? "Resume rotation" : "Pause rotation";
+            }
+
+            if (state.rotationPaused) {
+                stopAnimation();
+            } else {
+                startAnimation();
             }
         }
 
@@ -693,6 +711,8 @@
         viewport.addEventListener("contextmenu", event => event.preventDefault());
 
         document.getElementById("close-btn").addEventListener("click", closeModal);
+
+        document.getElementById("pause-btn").addEventListener("click", toggleRotation);
 
         document.getElementById("reset-btn").addEventListener("click", resetView);
 
